@@ -1,0 +1,16 @@
+:root {
+  --nav-height: 64px;
+}
+html, body { scroll-behavior: smooth; }
+
+.hero { min-height: 92vh; padding-top: var(--nav-height); }
+
+/* Navbar transparency on hero */
+.bg-white-50 { background-color: rgba(255,255,255,.8) !important; }
+.backdrop-blur { backdrop-filter: saturate(180%) blur(8px); }
+
+/* Utilities */
+.py-7 { padding-top: 4rem; padding-bottom: 4rem; }
+
+/* Footer */
+footer a { text-decoration: none; }
