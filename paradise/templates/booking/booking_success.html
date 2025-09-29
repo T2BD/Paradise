@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Booking Confirmed{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+  <!-- ⭐⭐⭐ Start: Success Message -->
+  <div class="alert alert-success shadow-sm" role="alert">
+    <h4 class="alert-heading">🎉 Booking Confirmed!</h4>
+    <p>
+      Thank you <strong>{{ booking.customer_name }}</strong>.<br>
+      Your booking for <strong>Room {{ booking.room.room_number }}</strong> ({{ booking.room.room_type }})
+      is confirmed from <strong>{{ booking.check_in }}</strong> to <strong>{{ booking.check_out }}</strong>.
+    </p>
+    <hr>
+    <a href="{% url 'room_list' %}" class="btn btn-primary">Back to Rooms</a>
+  </div>
+  <!-- ⭐⭐⭐ End: Success Message -->
+</div>
+{% endblock %}

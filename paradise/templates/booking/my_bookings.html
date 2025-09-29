@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}My Bookings{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <h2 class="mb-4">My Bookings</h2>
+  {% if bookings %}
+    <ul class="list-group">
+      {% for booking in bookings %}
+        <li class="list-group-item">
+          <strong>Room {{ booking.room.room_number }} ({{ booking.room.room_type }})</strong><br>
+          Check-in: {{ booking.check_in }} | Check-out: {{ booking.check_out }}<br>
+          <small class="text-muted">Booked on {{ booking.created_at|date:"F j, Y, g:i a" }}</small>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>You don’t have any bookings yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

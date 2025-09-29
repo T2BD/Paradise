@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Available Rooms{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <!-- ⭐⭐⭐ Start: Room List Section -->
+  <h2 class="text-center mb-4">Available Rooms</h2>
+  <div class="row g-4">
+    {% for room in rooms %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm h-100">
+          <!-- Room Image (optional) -->
+          <img src="{% static 'images/room.jpg' %}" class="card-img-top img-fluid" alt="Room image">
+
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">Room {{ room.room_number }}</h5>
+            <p class="card-text">
+              Type: <strong>{{ room.room_type }}</strong><br>
+              Price: <strong>৳{{ room.price }}</strong>
+            </p>
+            <div class="mt-auto">
+              <a href="{% url 'book_room' %}" class="btn btn-primary w-100">Book Now</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <p class="text-center">No rooms available at the moment.</p>
+    {% endfor %}
+  </div>
+  <!-- ⭐⭐⭐ End: Room List Section -->
+</div>
+{% endblock %}

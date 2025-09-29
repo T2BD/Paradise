@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Welcome to Paradise Hotel{% endblock %}
+
+{% block content %}
+<!-- ⭐⭐⭐ Hero Section -->
+<section class="bg-dark text-white text-center py-5" style="background: url('{% static "images/hotel-banner.jpg" %}') center/cover no-repeat;">
+  <div class="container py-5">
+    <h1 class="display-4 fw-bold">Welcome to Paradise Hotel</h1>
+    <p class="lead">Luxury rooms, comfort & convenience at your fingertips</p>
+    <a href="{% url 'book_room' %}" class="btn btn-primary btn-lg mt-3">Book Now</a>
+  </div>
+</section>
+
+<!-- ⭐⭐⭐ Features Section -->
+<section class="container py-5">
+  <div class="row text-center">
+    <div class="col-md-4">
+      <div class="card shadow-sm p-4 h-100">
+        <h4>🏨 Elegant Rooms</h4>
+        <p>Spacious, stylish, and comfortable rooms designed for a perfect stay.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm p-4 h-100">
+        <h4>🍽 Fine Dining</h4>
+        <p>Delicious international cuisines served with elegance and flavor.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm p-4 h-100">
+        <h4>🌐 Online Booking</h4>
+        <p>Easy, secure, and fast booking system available 24/7.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ⭐⭐⭐ Call-to-Action -->
+<section class="bg-light py-5 text-center">
+  <div class="container">
+    <h2 class="fw-bold">Plan Your Next Stay with Us</h2>
+    <p>Check out our available rooms and book your dream getaway now.</p>
+    <a href="{% url 'room_list' %}" class="btn btn-success btn-lg">View Rooms</a>
+  </div>
+</section>
+{% endblock %}
