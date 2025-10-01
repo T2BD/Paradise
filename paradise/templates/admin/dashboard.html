@@ -7,38 +7,31 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
   <style>
-    /* ===== Background ===== */
     body {
       background: linear-gradient(135deg, #1e3c72, #2a5298);
       background-attachment: fixed;
       color: white;
     }
 
-    /* ===== Transparent Glassy Card ===== */
+    /* Transparent Glassy Card */
     .glass-card {
-      background: rgba(0, 0, 50, 0.35);
+      background: rgba(0, 0, 0, 0.35) !important;
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.18);
       border-radius: 16px;
-      box-shadow: 0 4px 30px rgba(0, 102, 255, 0.4); /* 💙 blue glow */
-    }
-
-    .glass-card {
+      box-shadow: 0 4px 30px rgba(0, 102, 255, 0.4);
       animation: fadeInUp 0.6s ease;
     }
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(15px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
     .glass-card:hover {
       transform: translateY(-4px);
       box-shadow: 0 8px 32px rgba(0, 123, 255, 0.6);
     }
 
-
-
-    /* ===== Table Styling ===== */
+    /* Table Styling */
     .table thead th {
       background: rgba(13, 110, 253, 0.25) !important;
       color: #fff !important;
@@ -47,7 +40,7 @@
       background: rgba(255, 255, 255, 0.1) !important;
     }
 
-    /* ===== Stat Cards ===== */
+    /* Stat Cards */
     .stat-card {
       padding: 25px;
       border-radius: 20px;
@@ -60,7 +53,7 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.3);
     }
 
-    /* ===== Transparent Badges ===== */
+    /* Badges */
     .badge {
       padding: 8px 12px;
       border-radius: 10px;
@@ -70,9 +63,7 @@
       border: 1px solid rgba(255,255,255,0.2);
     }
 
-    .glass-card {
-      background: rgba(0, 0, 0, 0.35) !important; /* darker transparent */
-    }
+    /* Buttons */
     .btn-glass {
       background: rgba(0, 123, 255, 0.2);
       border: 1px solid rgba(255, 255, 255, 0.3);
@@ -87,29 +78,88 @@
       background: rgba(0, 123, 255, 0.4);
       transform: scale(1.05);
     }
-
-    .table.glass-table {
-      background: rgba(255, 255, 255, 0.05);
-      color: white;
-    }
-    .table.glass-table thead {
-      background: rgba(0, 123, 255, 0.2);
-    }
-    .table.glass-table tbody tr {
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-
-
   </style>
 {% endblock %}
-
-
 
 {% block content %}
   <div class="container py-5" style="max-width: 1200px; margin: auto;">
 
     <div class="glass-card p-2 mb-3 text-white fw-bold">🏨 Paradise Hotel Dashboard</div>
+
+    <!-- Filter Alert -->
+    {% if request.GET.start or request.GET.end or request.GET.room_type %}
+      <div class="alert alert-info glass-card text-center">
+        📊 Showing filtered results
+        {% if request.GET.start %} from <b>{{ request.GET.start }}</b>{% endif %}
+        {% if request.GET.end %} to <b>{{ request.GET.end }}</b>{% endif %}
+        {% if request.GET.room_type %} for <b>{{ request.GET.room_type }}</b>{% endif %}
+      </div>
+    {% endif %}
+
+    <!-- ✅ Single Filter Form (keep only this one) -->
+
+    <form method="get" class="row g-3 mb-4 justify-content-center">
+      <div class="col-md-3">
+        <input type="date" name="start" value="{{ request.GET.start }}" class="form-control" />
+      </div>
+      <div class="col-md-3">
+        <input type="date" name="end" value="{{ request.GET.end }}" class="form-control" />
+      </div>
+      <div class="col-md-3">
+        <select name="room_type" class="form-select">
+          <option value="">All Room Types</option>
+          <option value="Single" {% if request.GET.room_type == "Single" %}selected{% endif %}>Single</option>
+          <option value="Double" {% if request.GET.room_type == "Double" %}selected{% endif %}>Double</option>
+          <option value="Suite" {% if request.GET.room_type == "Suite" %}selected{% endif %}>Suite</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-glass w-100">
+          <i class="fa fa-filter"></i> Apply
+        </button>
+      </div>
+    </form>
+
+
+  <!-- Quick Filter Shortcuts -->
+    <div class="d-flex gap-2 justify-content-center mb-4">
+      <a href="?start={{ today|date:'Y-m-d' }}&end={{ today|date:'Y-m-d' }}" class="btn btn-sm btn-glass">
+        Today
+      </a>
+      <a href="?start={{ today|date:'Y-m-d'|add:'-7' }}&end={{ today|date:'Y-m-d' }}" class="btn btn-sm btn-glass">
+        Last 7 Days
+      </a>
+      <a href="?start={{ today|date:'Y-m-d'|add:'-30' }}&end={{ today|date:'Y-m-d' }}" class="btn btn-sm btn-glass">
+        Last 30 Days
+      </a>
+      <a href="?" class="btn btn-sm btn-secondary">Reset</a>
+    </div>
+
+
+
+      <div class="d-flex gap-2 justify-content-end mb-4">
+
+      <!-- Export CSV -->
+
+      <a href="?{% if request.GET.start %}start={{request.GET.start}}&{% endif %}
+                {% if request.GET.end %}end={{request.GET.end}}&{% endif %}
+                {% if request.GET.room_type %}room_type={{request.GET.room_type}}&{% endif %}
+                export=csv"
+         class="btn btn-glass">
+         <i class="fa fa-download"></i> Export CSV
+      </a>
+
+      <a href="?export=pdf" class="btn btn-danger btn-sm">
+        <i class="fa fa-file-pdf"></i> Export PDF
+      </a>
+
+      <!-- Print Report -->
+
+      <button onclick="window.print()" class="btn btn-glass">
+        <i class="fa fa-print"></i> Print
+      </button>
+    </div>
+
 
     <!-- Stat Cards -->
     <div class="row g-4 mb-5 text-center">
@@ -134,6 +184,8 @@
           <p class="fs-2 fw-bold">{{ today_checkins }}</p>
         </div>
       </div>
+
+
       <div class="col-md-3">
         <div class="glass-card stat-card">
           <i class="fa-solid fa-circle-xmark fa-2x mb-2"></i>
@@ -143,21 +195,91 @@
       </div>
     </div>
 
-    <!-- Weekly Bookings Chart -->
-    <div class="glass-card p-2 mb-3 text-white fw-bold"> 📈 Weekly Bookings </div>
+    <div class="col-md-3">
+      <div class="glass-card stat-card">
+        <i class="fa-solid fa-bed fa-2x mb-2"></i>
+        <h6>Avg Stay Duration</h6>
+        <p class="fs-2 fw-bold">{{ avg_stay_days }} days</p>
+      </div>
+    </div>
 
+    <div class="col-md-3">
+      <div class="glass-card stat-card">
+        <i class="fa-solid fa-chart-line fa-2x mb-2"></i>
+        <h6>Occupancy Rate</h6>
+        <p class="fs-2 fw-bold">{{ occupancy_rate }}%</p>
+      </div>
+    </div>
+
+
+    <!-- Extra KPIs -->
+    <div class="glass-card p-3 mb-5">
+      <h4 class="mb-3">📊 Key Performance Indicators</h4>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item bg-transparent text-white">
+              <strong>💰 Revenue per Room Type:</strong>
+              <ul>
+                {% for r in revenue_per_type %}
+                  <li>{{ r.room__room_type }} → ${{ r.total_revenue }}</li>
+                {% empty %}
+                  <li>No data available</li>
+                {% endfor %}
+              </ul>
+            </li>
+            <li class="list-group-item bg-transparent text-white">
+              <strong>⏳ Average Stay Duration:</strong> {{ avg_stay_days }} days
+            </li>
+            <li class="list-group-item bg-transparent text-white">
+              <strong>🏠 Occupancy Rate:</strong> {{ occupancy_rate }}%
+            </li>
+          </ul>
+    </div>
+
+    <div class="glass-card p-2 mb-3 text-white fw-bold">💰 Revenue per Room Type</div>
+        <div class="table-responsive glass-card p-3 mb-5">
+          <table class="table glass-table table-hover">
+            <thead>
+              <tr>
+                <th>Room Type</th>
+                <th>Total Revenue ($)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in revenue_per_type %}
+                <tr>
+                  <td>{{ item.room__room_type }}</td>
+                  <td>${{ item.total_revenue }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="2" class="text-center">No revenue data available.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+
+
+    <!-- Weekly Bookings -->
+    <div class="glass-card p-2 mb-3 text-white fw-bold"> 📈 Weekly Bookings </div>
     <div class="glass-card p-3 mb-5">
       <img src="data:image/png;base64,{{ chart }}" class="img-fluid rounded" style="background: transparent;" />
     </div>
 
-    <!-- Bookings per Room Type -->
+    <!-- Room Type Chart -->
     <div class="glass-card p-2 mb-3 text-white fw-bold"> 🏨 Bookings per Room Type </div>
     <div class="glass-card p-3 mb-5">
       <img src="data:image/png;base64,{{ room_chart }}" class="img-fluid rounded" style="background: transparent;" />
     </div>
 
+    <!-- ✅ Occupancy Chart -->
+    <div class="glass-card p-2 mb-3 text-white fw-bold">📊 Occupancy Chart (30 Days)</div>
+    <div class="glass-card p-3 mb-5 text-center">
+      <img src="data:image/png;base64,{{ occupancy_chart }}" class="img-fluid rounded" style="background: transparent;" />
+    </div>
+
+
     <!-- Top Rooms -->
-    <<div class="glass-card p-2 mb-3 text-white fw-bold">🏆 Top Rooms (Most Booked)</div>
+    <div class="glass-card p-2 mb-3 text-white fw-bold">🏆 Top Rooms (Most Booked)</div>
     <ul class="list-group mb-5 shadow-sm">
       {% for room in top_rooms %}
         <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -179,9 +301,7 @@
     <!-- Recent Bookings -->
     <div class="glass-card p-2 mb-3 text-white fw-bold">🕒 Recent Bookings</div>
     <div class="table-responsive glass-card p-3">
-
       <table class="table glass-table table-hover">
-
         <thead>
           <tr>
             <th>Customer</th>
@@ -195,9 +315,7 @@
           {% for booking in recent_bookings %}
             <tr>
               <td>{{ booking.customer_name }}</td>
-              <td>
-                Room {{ booking.room.room_number }} ({{ booking.room.room_type }})
-              </td>
+              <td>Room {{ booking.room.room_number }} ({{ booking.room.room_type }})</td>
               <td>{{ booking.check_in }}</td>
               <td>{{ booking.check_out }}</td>
               <td>{{ booking.created_at|date:"M d, Y H:i" }}</td>

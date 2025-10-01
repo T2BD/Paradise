@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Paradise Hotel – Bookings Report</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; font-size: 13px; color: #333; }
+    header, footer { text-align: center; font-size: 12px; color: #666; }
+    header h1 { margin: 0; color: #0d6efd; }
+    h2 { margin: 5px 0 15px; text-align: center; color: #444; }
+    h3 { margin: 20px 0 8px; color: #0d6efd; }
+    h4 { margin: 10px 0 6px; font-size: 13px; color: #444; }
+    .stats { margin-bottom: 20px; }
+    .stats div { margin: 4px 0; }
+    ul { margin: 6px 0 12px 18px; padding: 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #ddd; padding: 6px 8px; }
+    th { background: #0d6efd; color: white; font-size: 12px; text-align: left; }
+    tr:nth-child(even) { background: #f9f9f9; }
+    img { margin: 8px 0; max-width: 100%; }
+    .chart-grid { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    .chart-grid td { width: 33%; padding: 6px; vertical-align: top; }
+    /* Page breaks */
+    table { page-break-inside: auto; }
+    tr { page-break-inside: avoid; page-break-after: auto; }
+    h3 { page-break-before: always; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <h1>🏨 Paradise Hotel</h1>
+    <p>Bookings Report – Generated on {{ today|date:"M d, Y H:i" }}</p>
+  </header>
+
+  <!-- Summary -->
+  <h2>Summary</h2>
+  <div class="stats">
+    <div><b>Total Rooms:</b> {{ total_rooms }}</div>
+    <div><b>Total Bookings:</b> {{ total_bookings }}</div>
+    <div><b>Today’s Check-ins:</b> {{ today_checkins }}</div>
+    <div><b>Today’s Check-outs:</b> {{ today_checkouts }}</div>
+
+    <h3>💰 Revenue by Room Type</h3>
+    <ul>
+      {% for r in revenue_per_type %}
+        <li>{{ r.room__room_type }}: ${{ r.total_revenue }}</li>
+      {% empty %}
+        <li>No revenue yet.</li>
+      {% endfor %}
+    </ul>
+
+    <p><b>Average Stay:</b> {{ avg_stay_days }} days</p>
+    <p><b>Occupancy Rate:</b> {{ occupancy_rate }}%</p>
+  </div>
+
+  <!-- Charts in grid -->
+  <h2>Charts</h2>
+  <table class="chart-grid">
+    <tr>
+      <td>
+        <h4>📈 Weekly Bookings</h4>
+        <img src="data:image/png;base64,{{ chart }}">
+      </td>
+      <td>
+        <h4>🏨 Bookings per Room Type</h4>
+        <img src="data:image/png;base64,{{ room_chart }}">
+      </td>
+      <td>
+        <h4>📊 Occupancy (30 Days)</h4>
+        <img src="data:image/png;base64,{{ occupancy_chart }}">
+      </td>
+    </tr>
+  </table>
+
+  <!-- Bookings Table -->
+  <h2>🕒 Recent Bookings</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Customer</th>
+        <th>Room</th>
+        <th>Type</th>
+        <th>Check-in</th>
+        <th>Check-out</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for b in bookings %}
+      <tr>
+        <td>{{ b.customer_name }}</td>
+        <td>{{ b.room.room_number }}</td>
+        <td>{{ b.room.room_type }}</td>
+        <td>{{ b.check_in }}</td>
+        <td>{{ b.check_out }}</td>
+        <td>{{ b.created_at|date:"M d, Y H:i" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" style="text-align:center;">No bookings found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Footer -->
+  <footer>
+    <p>Paradise Hotel – Automated Report</p>
+  </footer>
+</body>
+</html>
