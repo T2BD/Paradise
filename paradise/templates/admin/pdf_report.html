@@ -1,110 +1,204 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Paradise Hotel – Bookings Report</title>
+  <meta charset="utf-8">
+  <title>Paradise Hotel — Bookings Report</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
   <style>
-    body { font-family: Arial, sans-serif; margin: 30px; font-size: 13px; color: #333; }
-    header, footer { text-align: center; font-size: 12px; color: #666; }
-    header h1 { margin: 0; color: #0d6efd; }
-    h2 { margin: 5px 0 15px; text-align: center; color: #444; }
-    h3 { margin: 20px 0 8px; color: #0d6efd; }
-    h4 { margin: 10px 0 6px; font-size: 13px; color: #444; }
-    .stats { margin-bottom: 20px; }
-    .stats div { margin: 4px 0; }
-    ul { margin: 6px 0 12px 18px; padding: 0; }
-    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-    th, td { border: 1px solid #ddd; padding: 6px 8px; }
-    th { background: #0d6efd; color: white; font-size: 12px; text-align: left; }
-    tr:nth-child(even) { background: #f9f9f9; }
-    img { margin: 8px 0; max-width: 100%; }
-    .chart-grid { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    .chart-grid td { width: 33%; padding: 6px; vertical-align: top; }
-    /* Page breaks */
-    table { page-break-inside: auto; }
-    tr { page-break-inside: avoid; page-break-after: auto; }
-    h3 { page-break-before: always; }
+    /* Basic layout */
+    body { font-family: Arial, Helvetica, sans-serif; color: #222; margin: 18px; font-size: 13px; }
+    header { text-align: center; margin-bottom: 6px; }
+    h1 { margin: 0; font-size: 20px; color: #0d6efd; }
+    h2 { margin: 4px 0 12px 0; font-size: 15px; color: #333; }
+    h3 { margin: 14px 0 6px 0; color: #0d6efd; font-size: 14px; }
+
+    /* Summary */
+    .summary { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; margin-bottom: 10px; }
+    .stat { min-width: 150px; background: #f8f9fa; border: 1px solid #e9ecef; padding: 8px 10px; border-radius: 6px; }
+    .stat b { display: block; font-size: 12px; color: #555; }
+    .stat .value { font-size: 18px; margin-top: 6px; font-weight: 700; color: #111; }
+
+    /* KPI list */
+    .kpis { margin-top: 8px; }
+    .kpis ul { margin: 6px 0 0 18px; padding: 0; }
+
+    /* Charts area */
+    .charts-grid { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .charts-grid td { vertical-align: top; padding: 8px; width: 50%; }
+    .chart-title { font-size: 13px; margin: 6px 0; color: #0d6efd; }
+    img.chart { display: block; max-width: 100%; height: auto; border: 1px solid #eee; padding: 6px; background: #fff; }
+
+    /* Table */
+    table.bookings { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 12px; }
+    table.bookings th, table.bookings td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; vertical-align: top; }
+    table.bookings th { background: #0d6efd; color: #fff; font-weight: 600; font-size: 12px; }
+    table.bookings tbody tr:nth-child(even) td { background: #fafafa; }
+
+    /* Page break helpers for PDF */
+    .page-break { page-break-after: always; }
+    thead { display: table-header-group; } /* repeat table header on each page */
+    tfoot { display: table-row-group; }
+
+    /* Footer small text */
+    .footer { margin-top: 18px; color: #666; font-size: 11px; text-align: center; }
+
+    /* Make lists inside revenue small and compact */
+    .revenue-list { margin: 6px 0 0 16px; font-size: 12px; }
+
+    /* Keep charts from being split awkwardly */
+    .chart-block { page-break-inside: avoid; }
   </style>
 </head>
 <body>
-  <!-- Header -->
-  <header>
+  <header role="banner" aria-label="Report header">
     <h1>🏨 Paradise Hotel</h1>
-    <p>Bookings Report – Generated on {{ today|date:"M d, Y H:i" }}</p>
+    <h2>Bookings Report</h2>
+
+    {# show explicit report period if provided, else show today/now if present #}
+    {% if filter_start and filter_end %}
+      <div aria-label="Report period">Period: {{ filter_start }} — {{ filter_end }}</div>
+    {% elif filter_end %}
+      <div aria-label="Report date">As of: {{ filter_end }}</div>
+    {% elif today %}
+      <div aria-label="Report date">As of: {{ today }}</div>
+    {% elif now %}
+      <div aria-label="Report date">As of: {{ now }}</div>
+    {% endif %}
   </header>
 
-  <!-- Summary -->
-  <h2>Summary</h2>
-  <div class="stats">
-    <div><b>Total Rooms:</b> {{ total_rooms }}</div>
-    <div><b>Total Bookings:</b> {{ total_bookings }}</div>
-    <div><b>Today’s Check-ins:</b> {{ today_checkins }}</div>
-    <div><b>Today’s Check-outs:</b> {{ today_checkouts }}</div>
+  <!-- Summary stats -->
+  <section class="summary" role="region" aria-label="Summary stats">
+    <div class="stat" role="status" aria-atomic="true">
+      <b>Total rooms</b>
+      <div class="value">{{ total_rooms|default:"0" }}</div>
+    </div>
+    <div class="stat" role="status" aria-atomic="true">
+      <b>Total bookings</b>
+      <div class="value">{{ total_bookings|default:"0" }}</div>
+    </div>
+    <div class="stat" role="status" aria-atomic="true">
+      <b>Today's check-ins</b>
+      <div class="value">{{ today_checkins|default:"0" }}</div>
+    </div>
+    <div class="stat" role="status" aria-atomic="true">
+      <b>Today's check-outs</b>
+      <div class="value">{{ today_checkouts|default:"0" }}</div>
+    </div>
+  </section>
 
-    <h3>💰 Revenue by Room Type</h3>
-    <ul>
-      {% for r in revenue_per_type %}
-        <li>{{ r.room__room_type }}: ${{ r.total_revenue }}</li>
-      {% empty %}
-        <li>No revenue yet.</li>
-      {% endfor %}
-    </ul>
+  <section class="kpis" aria-label="Key performance indicators">
+    <h3>Key performance indicators</h3>
+    <div><b>Average stay:</b> {{ avg_stay_days|default:"0" }} days</div>
+    <div><b>Occupancy rate (period):</b> {{ occupancy_rate|default:"0" }}%</div>
 
-    <p><b>Average Stay:</b> {{ avg_stay_days }} days</p>
-    <p><b>Occupancy Rate:</b> {{ occupancy_rate }}%</p>
-  </div>
+    <div style="margin-top:6px;">
+      <b>Revenue by room type</b>
+      <ul class="revenue-list" aria-label="Revenue by room type">
+        {% for r in revenue_per_type %}
+          <li>{{ r.room__room_type }} — {{ r.total_revenue|default:"0" }}</li>
+        {% empty %}
+          <li>No revenue data.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
 
-  <!-- Charts in grid -->
-  <h2>Charts</h2>
-  <table class="chart-grid">
-    <tr>
-      <td>
-        <h4>📈 Weekly Bookings</h4>
-        <img src="data:image/png;base64,{{ chart }}">
-      </td>
-      <td>
-        <h4>🏨 Bookings per Room Type</h4>
-        <img src="data:image/png;base64,{{ room_chart }}">
-      </td>
-      <td>
-        <h4>📊 Occupancy (30 Days)</h4>
-        <img src="data:image/png;base64,{{ occupancy_chart }}">
-      </td>
-    </tr>
-  </table>
-
-  <!-- Bookings Table -->
-  <h2>🕒 Recent Bookings</h2>
-  <table>
-    <thead>
+  <!-- Charts: two-column grid -->
+  <section class="chart-block" aria-label="Charts">
+    <h3>Charts</h3>
+    <table class="charts-grid" role="presentation" aria-hidden="false">
       <tr>
-        <th>Customer</th>
-        <th>Room</th>
-        <th>Type</th>
-        <th>Check-in</th>
-        <th>Check-out</th>
-        <th>Created</th>
+        <td>
+          <div class="chart-title">Weekly bookings</div>
+          {% if chart %}
+            <img class="chart" src="data:image/png;base64,{{ chart }}" alt="Weekly bookings chart">
+          {% else %}
+            <div>No weekly bookings chart available.</div>
+          {% endif %}
+        </td>
+        <td>
+          <div class="chart-title">Bookings per room type</div>
+          {% if room_chart %}
+            <img class="chart" src="data:image/png;base64,{{ room_chart }}" alt="Bookings per room type">
+          {% else %}
+            <div>No room type chart available.</div>
+          {% endif %}
+        </td>
       </tr>
-    </thead>
-    <tbody>
-      {% for b in bookings %}
-      <tr>
-        <td>{{ b.customer_name }}</td>
-        <td>{{ b.room.room_number }}</td>
-        <td>{{ b.room.room_type }}</td>
-        <td>{{ b.check_in }}</td>
-        <td>{{ b.check_out }}</td>
-        <td>{{ b.created_at|date:"M d, Y H:i" }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="6" style="text-align:center;">No bookings found.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
 
-  <!-- Footer -->
-  <footer>
-    <p>Paradise Hotel – Automated Report</p>
+      <tr>
+        <td>
+          <div class="chart-title">Occupancy (period)</div>
+          {% if occupancy_chart %}
+            <img class="chart" src="data:image/png;base64,{{ occupancy_chart }}" alt="Occupancy chart">
+          {% else %}
+            <div>No occupancy chart available.</div>
+          {% endif %}
+        </td>
+        <td>
+          <div class="chart-title">Revenue trend (daily)</div>
+          {% if revenue_chart %}
+            <img class="chart" src="data:image/png;base64,{{ revenue_chart }}" alt="Revenue trend chart">
+          {% else %}
+            <div>No revenue trend chart available.</div>
+          {% endif %}
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="2">
+          <div class="chart-title">Bookings by source</div>
+          {% if source_chart %}
+            <img class="chart" src="data:image/png;base64,{{ source_chart }}" alt="Bookings by source">
+          {% else %}
+            <div>No bookings-by-source chart available.</div>
+          {% endif %}
+        </td>
+      </tr>
+    </table>
+  </section>
+
+  <div class="page-break"></div>
+
+  <!-- Bookings table -->
+  <section aria-label="Bookings list">
+    <h3>Bookings (filtered)</h3>
+    <table class="bookings" role="table" aria-label="Bookings table">
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Room</th>
+          <th>Type</th>
+          <th>Source</th>
+          <th>Check-in</th>
+          <th>Check-out</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in bookings %}
+          <tr>
+            <td>{{ b.customer_name }}</td>
+            <td>{{ b.room.room_number }}</td>
+            <td>{{ b.room.room_type }}</td>
+            <td>{{ b.source|default:"-" }}</td>
+            <td>{{ b.check_in }}</td>
+            <td>{{ b.check_out }}</td>
+            <td>{{ b.created_at|date:"M d, Y H:i" }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7" style="text-align:center;">No bookings found for this filter.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <footer class="footer" role="contentinfo">
+    Paradise Hotel • Generated on
+    {% if now %}{{ now }}{% elif filter_end %}{{ filter_end }}{% elif today %}{{ today }}{% else %}{{ "" }}{% endif %}.
   </footer>
 </body>
 </html>
