@@ -16,7 +16,7 @@ from django.urls import path
 from django.utils import timezone
 from django.template.loader import render_to_string
 from weasyprint import HTML   # ✅ Use WeasyPrint only
-
+from django.core.cache import cache
 from .models import Room, Booking
 
 
@@ -229,6 +229,22 @@ class CustomAdminSite(admin.AdminSite):
         if start_date > end_date:
             start_date, end_date = end_date, start_date
 
+        # --- Safe defaults so template never errors if a chart wasn't created ---
+        chart_base64 = chart_svg = ""
+        room_chart_base64 = room_chart_svg = ""
+        occupancy_chart_base64 = revenue_chart_base64 = source_chart_base64 = ""
+
+        # lightweight cache helper (uses Django cache; production: use redis/memcached)
+        from django.core.cache import cache
+        def cached_chart(key, make_func, timeout=300):
+            val = cache.get(key)
+            if val is not None:
+                return val
+            val = make_func()
+            if val:
+                cache.set(key, val, timeout)
+            return val
+
         # Apply filters
         bookings_qs = Booking.objects.select_related("room").filter(
             created_at__date__gte=start_date, created_at__date__lte=end_date
@@ -275,7 +291,9 @@ class CustomAdminSite(admin.AdminSite):
             apply_dark_style(ax2, fig2)
             plt.xticks(rotation=20, color="white")
             plt.yticks(color="white")
-            room_chart_base64 = fig_to_base64(fig2)
+            key = f"chart_roomtype:{start_date}:{end_date}:{room_type or 'all'}"
+            room_chart_base64 = cached_chart(key, lambda: fig_to_base64(fig2), timeout=300)
+
         else:
             room_chart_base64 = ""
 
@@ -291,7 +309,8 @@ class CustomAdminSite(admin.AdminSite):
             apply_dark_style(ax, fig)
             plt.xticks(rotation=30, color="white", fontsize=9)
             plt.yticks(color="white", fontsize=9)
-            chart_base64 = fig_to_base64(fig)
+            key = f"chart_weekly:{start_date}:{end_date}:{room_type or 'all'}"
+            chart_base64 = cached_chart(key, lambda: fig_to_base64(fig), timeout=300)
         else:
             chart_base64 = ""
 
@@ -315,7 +334,9 @@ class CustomAdminSite(admin.AdminSite):
             plt.xticks(rotation=30, color="white")
             plt.yticks(color="white")
             ax4.grid(True, linestyle="--", alpha=0.4)
-            revenue_chart_base64 = fig_to_base64(fig4)
+            key = f"chart_revenue:{start_date}:{end_date}:{room_type or 'all'}"
+            revenue_chart_base64 = cached_chart(key, lambda: fig_to_base64(fig4), timeout=300)
+
         else:
             revenue_chart_base64 = ""
 
@@ -342,7 +363,9 @@ class CustomAdminSite(admin.AdminSite):
                 colors = ["#0d6efd", "#6c757d"]
                 ax3.pie(values_pie, labels=labels_pie, autopct="%1.1f%%", startangle=140, colors=colors)
                 fig3.patch.set_facecolor("#1e3c72")
-                occupancy_chart_base64 = fig_to_base64(fig3)
+                key = f"chart_occupancy:{start_date}:{end_date}:{room_type or 'all'}"
+                occupancy_chart_base64 = cached_chart(key, lambda: fig_to_base64(fig3), timeout=300)
+
             else:
                 occupancy_chart_base64 = ""
         else:
@@ -361,7 +384,9 @@ class CustomAdminSite(admin.AdminSite):
             apply_dark_style(ax5, fig5)
             plt.xticks(rotation=15, color="white")
             plt.yticks(color="white")
-            source_chart_base64 = fig_to_base64(fig5)
+            key = f"chart_source:{start_date}:{end_date}:{room_type or 'all'}"
+            source_chart_base64 = cached_chart(key, lambda: fig_to_base64(fig5), timeout=300)
+
         else:
             source_chart_base64 = ""
 
