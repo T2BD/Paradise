@@ -1,52 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <title>Paradise Hotel — Bookings Report</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    /* Basic layout */
     body { font-family: Arial, Helvetica, sans-serif; color: #222; margin: 18px; font-size: 13px; }
     header { text-align: center; margin-bottom: 6px; }
     h1 { margin: 0; font-size: 20px; color: #0d6efd; }
     h2 { margin: 4px 0 12px 0; font-size: 15px; color: #333; }
     h3 { margin: 14px 0 6px 0; color: #0d6efd; font-size: 14px; }
 
-    /* Summary */
     .summary { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; margin-bottom: 10px; }
     .stat { min-width: 150px; background: #f8f9fa; border: 1px solid #e9ecef; padding: 8px 10px; border-radius: 6px; }
     .stat b { display: block; font-size: 12px; color: #555; }
     .stat .value { font-size: 18px; margin-top: 6px; font-weight: 700; color: #111; }
 
-    /* KPI list */
     .kpis { margin-top: 8px; }
     .kpis ul { margin: 6px 0 0 18px; padding: 0; }
 
-    /* Charts area */
     .charts-grid { width: 100%; border-collapse: collapse; margin-top: 10px; }
     .charts-grid td { vertical-align: top; padding: 8px; width: 50%; }
     .chart-title { font-size: 13px; margin: 6px 0; color: #0d6efd; }
     img.chart { display: block; max-width: 100%; height: auto; border: 1px solid #eee; padding: 6px; background: #fff; }
 
-    /* Table */
     table.bookings { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 12px; }
     table.bookings th, table.bookings td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; vertical-align: top; }
     table.bookings th { background: #0d6efd; color: #fff; font-weight: 600; font-size: 12px; }
     table.bookings tbody tr:nth-child(even) td { background: #fafafa; }
 
-    /* Page break helpers for PDF */
     .page-break { page-break-after: always; }
-    thead { display: table-header-group; } /* repeat table header on each page */
+    thead { display: table-header-group; }
     tfoot { display: table-row-group; }
 
-    /* Footer small text */
     .footer { margin-top: 18px; color: #666; font-size: 11px; text-align: center; }
-
-    /* Make lists inside revenue small and compact */
     .revenue-list { margin: 6px 0 0 16px; font-size: 12px; }
-
-    /* Keep charts from being split awkwardly */
     .chart-block { page-break-inside: avoid; }
   </style>
 </head>
@@ -55,19 +43,15 @@
     <h1>🏨 Paradise Hotel</h1>
     <h2>Bookings Report</h2>
 
-    {# show explicit report period if provided, else show today/now if present #}
     {% if filter_start and filter_end %}
       <div aria-label="Report period">Period: {{ filter_start }} — {{ filter_end }}</div>
     {% elif filter_end %}
       <div aria-label="Report date">As of: {{ filter_end }}</div>
     {% elif today %}
       <div aria-label="Report date">As of: {{ today }}</div>
-    {% elif now %}
-      <div aria-label="Report date">As of: {{ now }}</div>
     {% endif %}
   </header>
 
-  <!-- Summary stats -->
   <section class="summary" role="region" aria-label="Summary stats">
     <div class="stat" role="status" aria-atomic="true">
       <b>Total rooms</b>
@@ -104,7 +88,6 @@
     </div>
   </section>
 
-  <!-- Charts: two-column grid -->
   <section class="chart-block" aria-label="Charts">
     <h3>Charts</h3>
     <table class="charts-grid" role="presentation" aria-hidden="false">
@@ -116,7 +99,7 @@
           {% elif chart %}
             <img class="chart" src="data:image/png;base64,{{ chart }}" alt="Weekly bookings" />
           {% else %}
-            <div class="text-muted">No weekly bookings chart available.</div>
+            <div>No weekly bookings chart available.</div>
           {% endif %}
         </td>
 
@@ -127,7 +110,7 @@
           {% elif room_chart %}
             <img class="chart" src="data:image/png;base64,{{ room_chart }}" alt="Bookings per room type" />
           {% else %}
-            <div class="text-muted">No room type chart available.</div>
+            <div>No room type chart available.</div>
           {% endif %}
         </td>
       </tr>
@@ -135,23 +118,19 @@
       <tr>
         <td>
           <div class="chart-title">Occupancy (period)</div>
-          {% if occupancy_chart_svg %}
-            {% autoescape off %}{{ occupancy_chart_svg }}{% endautoescape %}
-          {% elif occupancy_chart %}
+          {% if occupancy_chart %}
             <img class="chart" src="data:image/png;base64,{{ occupancy_chart }}" alt="Occupancy chart" />
           {% else %}
-            <div class="text-muted">No occupancy chart available.</div>
+            <div>No occupancy chart available.</div>
           {% endif %}
         </td>
 
         <td>
           <div class="chart-title">Revenue trend (daily)</div>
-          {% if revenue_chart_svg %}
-            {% autoescape off %}{{ revenue_chart_svg }}{% endautoescape %}
-          {% elif revenue_chart %}
+          {% if revenue_chart %}
             <img class="chart" src="data:image/png;base64,{{ revenue_chart }}" alt="Revenue trend chart" />
           {% else %}
-            <div class="text-muted">No revenue trend chart available.</div>
+            <div>No revenue trend chart available.</div>
           {% endif %}
         </td>
       </tr>
@@ -159,12 +138,10 @@
       <tr>
         <td colspan="2">
           <div class="chart-title">Bookings by source</div>
-          {% if source_chart_svg %}
-            {% autoescape off %}{{ source_chart_svg }}{% endautoescape %}
-          {% elif source_chart %}
+          {% if source_chart %}
             <img class="chart" src="data:image/png;base64,{{ source_chart }}" alt="Bookings by source" />
           {% else %}
-            <div class="text-muted">No bookings-by-source chart available.</div>
+            <div>No bookings-by-source chart available.</div>
           {% endif %}
         </td>
       </tr>
@@ -173,7 +150,6 @@
 
   <div class="page-break"></div>
 
-  <!-- Bookings table -->
   <section aria-label="Bookings list">
     <h3>Bookings (filtered)</h3>
     <table class="bookings" role="table" aria-label="Bookings table">
@@ -210,7 +186,7 @@
 
   <footer class="footer" role="contentinfo">
     Paradise Hotel • Generated on
-    {% if now %}{{ now }}{% elif filter_end %}{{ filter_end }}{% elif today %}{{ today }}{% else %}{{ "" }}{% endif %}.
+    {% if filter_end %}{{ filter_end }}{% elif today %}{{ today }}{% else %}{{ "" }}{% endif %}.
   </footer>
 </body>
 </html>

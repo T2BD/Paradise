@@ -17,6 +17,7 @@ from django.utils import timezone
 from django.template.loader import render_to_string
 from weasyprint import HTML   # ✅ Use WeasyPrint only
 from django.core.cache import cache
+
 from .models import Room, Booking
 
 
@@ -36,7 +37,7 @@ def svg_bar(labels, values, title="", width=600, height=300, bar_color="#0d6efd"
     if title:
         svg_parts.append(f'<title>{title}</title>')
         svg_parts.append(
-            f'<text x="{width/2}" y="16" text-anchor="middle" font-size="14" fill="#ffffff" style="font-family:Arial">{title}</text>'
+            f'<text x="{width/2}" y="18" text-anchor="middle" font-size="14" fill="#ffffff" style="font-family:Arial">{title}</text>'
         )
     svg_parts.append(f'<rect x="0" y="0" width="{width}" height="{height}" fill="none"/>')
     svg_parts.append(
@@ -87,7 +88,7 @@ def svg_line(labels, values, title="", width=700, height=300, stroke="#0dcaf0"):
     if title:
         svg.append(f'<title>{title}</title>')
         svg.append(
-            f'<text x="{width/2}" y="16" text-anchor="middle" font-size="14" fill="#ffffff" style="font-family:Arial">{title}</text>'
+            f'<text x="{width/2}" y="18" text-anchor="middle" font-size="14" fill="#ffffff" style="font-family:Arial">{title}</text>'
         )
     svg.append(f'<rect x="0" y="0" width="{width}" height="{height}" fill="none"/>')
     svg.append(f'<polyline points="{poly_pts}" fill="none" stroke="{stroke}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">')
@@ -120,8 +121,8 @@ def fig_to_base64(fig):
     return s
 
 
-def fig_to_svg(fig, inject_tag=None, values=None):
-    """Save fig as SVG string (does not fail if tight_layout errors)."""
+def fig_to_svg(fig):
+    """Save fig as SVG string and close fig. Used if you need SVG export of Matplotlib figures."""
     buf = io.BytesIO()
     try:
         fig.tight_layout()
@@ -130,23 +131,8 @@ def fig_to_svg(fig, inject_tag=None, values=None):
     fig.savefig(buf, format="svg")
     buf.seek(0)
     svg = buf.getvalue().decode("utf-8")
-    # do not close fig here in case caller wants to reuse it (we'll close in fig_to_base64 if used)
+    plt.close(fig)
     buf.close()
-    if inject_tag and values:
-        parts = svg.split(f"<{inject_tag} ")
-        out = parts[0]
-        i = 0
-        for p in parts[1:]:
-            if i < len(values):
-                idx = p.find("/>")
-                if idx != -1:
-                    out += f"<{inject_tag} " + p[:idx] + f">" + f"<title>{values[i]}</title>" + p[idx + 2:]
-                else:
-                    out += f"<{inject_tag} " + p
-            else:
-                out += f"<{inject_tag} " + p
-            i += 1
-        svg = out
     return svg
 
 
@@ -191,6 +177,11 @@ class CustomAdminSite(admin.AdminSite):
     def dashboard_view(self, request):
         today = timezone.now().date()
 
+        # --- Safe defaults so template never errors if a chart wasn't created ---
+        chart_base64 = chart_svg = ""
+        room_chart_base64 = room_chart_svg = ""
+        occupancy_chart_base64 = revenue_chart_base64 = source_chart_base64 = ""
+
         # --- Stats ---
         total_rooms = Room.objects.count()
 
@@ -229,13 +220,7 @@ class CustomAdminSite(admin.AdminSite):
         if start_date > end_date:
             start_date, end_date = end_date, start_date
 
-        # --- Safe defaults so template never errors if a chart wasn't created ---
-        chart_base64 = chart_svg = ""
-        room_chart_base64 = room_chart_svg = ""
-        occupancy_chart_base64 = revenue_chart_base64 = source_chart_base64 = ""
-
         # lightweight cache helper (uses Django cache; production: use redis/memcached)
-        from django.core.cache import cache
         def cached_chart(key, make_func, timeout=300):
             val = cache.get(key)
             if val is not None:
@@ -262,15 +247,12 @@ class CustomAdminSite(admin.AdminSite):
         labels = [d.strftime("%b %d") for d in last_week]
         data = [bookings_qs.filter(created_at__date=d).count() for d in last_week]
 
-
         # --- Bar chart: Bookings per Room Type ---
         room_type_data = bookings_qs.values("room__room_type").annotate(total=Count("id")).order_by("-total")
         room_labels = [entry["room__room_type"] for entry in room_type_data]
         room_counts = [entry["total"] for entry in room_type_data]
 
         # --- SVG fallbacks (non-JS interactive charts) ---
-        chart_svg = ""
-        room_chart_svg = ""
         try:
             if labels and any(data):
                 chart_svg = svg_line(labels, data, title="Weekly Bookings")
@@ -293,7 +275,6 @@ class CustomAdminSite(admin.AdminSite):
             plt.yticks(color="white")
             key = f"chart_roomtype:{start_date}:{end_date}:{room_type or 'all'}"
             room_chart_base64 = cached_chart(key, lambda: fig_to_base64(fig2), timeout=300)
-
         else:
             room_chart_base64 = ""
 
@@ -336,7 +317,6 @@ class CustomAdminSite(admin.AdminSite):
             ax4.grid(True, linestyle="--", alpha=0.4)
             key = f"chart_revenue:{start_date}:{end_date}:{room_type or 'all'}"
             revenue_chart_base64 = cached_chart(key, lambda: fig_to_base64(fig4), timeout=300)
-
         else:
             revenue_chart_base64 = ""
 
@@ -365,7 +345,6 @@ class CustomAdminSite(admin.AdminSite):
                 fig3.patch.set_facecolor("#1e3c72")
                 key = f"chart_occupancy:{start_date}:{end_date}:{room_type or 'all'}"
                 occupancy_chart_base64 = cached_chart(key, lambda: fig_to_base64(fig3), timeout=300)
-
             else:
                 occupancy_chart_base64 = ""
         else:
@@ -386,7 +365,6 @@ class CustomAdminSite(admin.AdminSite):
             plt.yticks(color="white")
             key = f"chart_source:{start_date}:{end_date}:{room_type or 'all'}"
             source_chart_base64 = cached_chart(key, lambda: fig_to_base64(fig5), timeout=300)
-
         else:
             source_chart_base64 = ""
 
@@ -428,28 +406,7 @@ class CustomAdminSite(admin.AdminSite):
             response["Content-Disposition"] = f'attachment; filename="{filename}"'
             return response
 
-        # --- Top rooms: return Room instances (in order) with total_bookings attached ---
-        top_rooms_counts = (
-            bookings_qs.values("room")
-            .annotate(total_bookings=Count("id"))
-            .order_by("-total_bookings")[:3]
-        )
-        room_ids = [item["room"] for item in top_rooms_counts]
-        rooms_qs = Room.objects.filter(id__in=room_ids)
-        id_to_count = {item["room"]: item["total_bookings"] for item in top_rooms_counts}
-        rooms_map = {r.id: r for r in rooms_qs}
-        top_rooms = []
-        for rid in room_ids:
-            r = rooms_map.get(rid)
-            if r:
-                # attach attribute to the instance so template can read room.total_bookings
-                r.total_bookings = id_to_count.get(rid, 0)
-                top_rooms.append(r)
-
-        recent_bookings = bookings_qs.order_by("-created_at")[:5]
-
-
-        # --- Top rooms (as dicts with status) & recent bookings ---
+        # --- Top rooms: return dicts with status and totals (clean, single approach) ---
         top_rooms_agg = (
             bookings_qs.values("room")
             .annotate(total_bookings=Count("id"))
@@ -470,7 +427,6 @@ class CustomAdminSite(admin.AdminSite):
 
         recent_bookings = bookings_qs.order_by("-created_at")[:5]
 
-
         # --- Context for dashboard (single, clean dict — no duplicate keys) ---
         context = dict(
             self.each_context(request),
@@ -486,8 +442,8 @@ class CustomAdminSite(admin.AdminSite):
             revenue_chart=revenue_chart_base64,
             source_chart=source_chart_base64,
             # SVG fallbacks for inline (non-JS interactive)
-            chart_svg=locals().get("chart_svg", ""),
-            room_chart_svg=locals().get("room_chart_svg", ""),
+            chart_svg=chart_svg,
+            room_chart_svg=room_chart_svg,
             # Data lists & KPIs
             top_rooms=top_rooms,
             recent_bookings=recent_bookings,
@@ -500,7 +456,6 @@ class CustomAdminSite(admin.AdminSite):
             filter_room_type=room_type,
         )
         return TemplateResponse(request, "admin/dashboard.html", context)
-
 
 
 # ✅ Register custom admin site
@@ -524,6 +479,7 @@ class RoomAdmin(admin.ModelAdmin):
             obj.get_status_display(),
         )
 
+    status_bad_description = "Status"
     status_badge.short_description = "Status"
 
     def preview_image(self, obj):
