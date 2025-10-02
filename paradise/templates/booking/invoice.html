@@ -1,28 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8">
+  <title>Invoice {{ booking.invoice_number }}</title>
   <style>
-    body { font-family: Arial, sans-serif; }
+    body { font-family: Arial, sans-serif; font-size: 14px; }
     h1 { color: #0d6efd; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ddd; padding: 8px; }
-    th { background: #0d6efd; color: #fff; }
+    td, th { border: 1px solid #ccc; padding: 8px; text-align: left; }
   </style>
 </head>
 <body>
-  <h1>Paradise Hotel Invoice</h1>
-  <p><b>Booking ID:</b> #{{ booking.id }}</p>
-  <p><b>Customer:</b> {{ booking.customer_name }} ({{ booking.customer_email }})</p>
-  <p><b>Room:</b> {{ booking.room.room_number }} ({{ booking.room.room_type }})</p>
-  <p><b>Check-in:</b> {{ booking.check_in }} <br>
-     <b>Check-out:</b> {{ booking.check_out }}</p>
-
-  <table>
-    <tr><th>Description</th><th>Amount</th></tr>
-    <tr><td>Room Charge</td><td>${{ booking.total_price }}</td></tr>
-  </table>
-
-  <p style="margin-top:20px;">Thank you for choosing Paradise Hotel!</p>
+  <h1>🏨 Paradise Hotel</h1>
+  <p><strong>Invoice #:</strong> {{ booking.invoice_number }}</p>
+  <p><strong>Customer:</strong> {{ booking.customer_name }}</p>
+  <p><strong>Email:</strong> {{ booking.customer_email }}</p>
+  <p><strong>Check-in:</strong> {{ booking.check_in }}</p>
+  <p><strong>Check-out:</strong> {{ booking.check_out }}</p>
+  <p><strong>Room:</strong> {{ booking.room.room_number }} ({{ booking.room.room_type }})</p>
+  <p><strong>Total Price:</strong> ${{ booking.room.price }}</p>
 </body>
 </html>

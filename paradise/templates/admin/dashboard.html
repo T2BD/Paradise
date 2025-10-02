@@ -306,12 +306,33 @@
       {% endfor %}
     </ul>
 
+
+  <!-- After Top Rooms -->
+    <div class="glass-card p-2 mb-3 text-white fw-bold">🏨 Room Details with Bookings</div>
+
+    {% for room in rooms %}
+      <div class="glass-card mb-4 p-3">
+        <h4>Room {{ room.room_number }} ({{ room.room_type }})</h4>
+        <p>Total bookings: {{ room.bookings.count }}</p>
+
+        <ul>
+          {% for b in room.bookings.all %}
+            <li>{{ b.customer_name }} → {{ b.status }}</li>
+          {% empty %}
+            <li>No bookings yet.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endfor %}
+
+
     <!-- Recent Bookings -->
     <div class="glass-card p-2 mb-3 text-white fw-bold">🕒 Recent Bookings</div>
     <div class="table-responsive glass-card p-3">
       <table class="table glass-table table-hover">
         <thead>
           <tr>
+           <th>Invoice #</th>
             <th>Customer</th>
             <th>Room</th>
             <th>Check-in</th>
@@ -328,6 +349,7 @@
         <tbody>
           {% for booking in recent_bookings %}
             <tr>
+              <td>{{ b.invoice_number }}</td>
               <td>{{ booking.customer_name }}</td>
               <td>Room {{ booking.room.room_number }} ({{ booking.room.room_type }})</td>
               <td>{{ booking.check_in }}</td>

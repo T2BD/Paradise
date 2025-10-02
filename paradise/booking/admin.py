@@ -513,6 +513,15 @@ class CustomAdminSite(admin.AdminSite):
 custom_admin_site = CustomAdminSite(name="custom_admin")
 
 
+#
+class BookingInline(admin.TabularInline):
+    model = Booking
+    extra = 0
+
+
+
+
+
 # --- Room Admin ---
 @admin.register(Room)
 class RoomAdmin(admin.ModelAdmin):
@@ -543,12 +552,25 @@ class RoomAdmin(admin.ModelAdmin):
 
 
 # --- Booking Admin ---
+# booking/admin.py (inside BookingAdmin)
+
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ("customer_name", "room", "check_in", "check_out", "created_at", "user", "source")
-    list_filter = ("check_in", "check_out", "room__room_type", "source")
-    search_fields = ("customer_name", "room__room_number", "user__username", "user__email")
+    list_display = (
+        "invoice_number",  # ✅ show invoice number
+        "customer_name",
+        "room",
+        "check_in",
+        "check_out",
+        "created_at",
+        "status",
+        "user",
+        "source"
+    )
+    list_filter = ("status", "check_in", "check_out", "room__room_type", "source")
+    search_fields = ("invoice_number", "customer_name", "room__room_number", "user__username", "user__email")
     ordering = ("-created_at",)
+
 
 
 

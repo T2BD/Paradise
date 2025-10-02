@@ -120,3 +120,24 @@ MEDIA_ROOT = BASE_DIR / "media"
 # Default primary key field type
 # --------------------------------------------------
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# PayPal Settings ================================================================
+
+PAYPAL_CLIENT_ID = "AXcoTkzjuLBB9DiaFF5H5-4OXtdoPHiZ2LhdWq0PPqt9_ZVJHhaFpIQY9rCwpeKMNU1af8op8TVfWnxV"
+PAYPAL_CLIENT_SECRET = "ELRkcoi05qFqse1K1PCkM3bEphVH6WQx7gy8d6rLie8TctUhzamD4CKCMJPlLJNl9mOxdgkApX_lMFCm"
+PAYPAL_MODE = "sandbox"  # "live" later
+
+
+# =============================================================
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "nuhad7july02@gmail.com"
+EMAIL_HOST_PASSWORD = "rkypyfyuxuqoskzu"  # ⚠️ Use app password, not plain password
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+# ========================================================================

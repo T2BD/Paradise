@@ -1,0 +1,7 @@
+{% if booking.status == "pending" %}
+  <a href="{% url 'paypal_start' booking.id %}" class="btn btn-success">
+    💳 Pay with PayPal
+  </a>
+{% elif booking.payment %}
+  <p>Payment Status: <strong>{{ booking.payment.status }}</strong></p>
+{% endif %}

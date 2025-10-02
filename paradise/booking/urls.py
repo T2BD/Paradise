@@ -10,6 +10,10 @@ urlpatterns = [
     path("my-bookings/", views.my_bookings, name="my_bookings"),
     path("booking/<int:pk>/invoice/", views.booking_invoice, name="booking_invoice"),
 
+    path("<int:booking_id>/paypal/", views.start_payment, name="paypal_start"),
+    path("<int:booking_id>/paypal-success/", views.payment_success, name="paypal_success"),
+    path("<int:booking_id>/paypal-cancel/", views.payment_cancel, name="paypal_cancel"),
+
 
 ]
 

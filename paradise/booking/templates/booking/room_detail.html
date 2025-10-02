@@ -1,0 +1,9 @@
+<!-- booking/templates/booking/room_detail.html -->
+<h3>Bookings for Room {{ room.room_number }}</h3>
+<ul>
+  {% for b in room.bookings.all %}
+    <li>{{ b.customer_name }} → {{ b.status }}</li>
+  {% empty %}
+    <li>No bookings yet.</li>
+  {% endfor %}
+</ul>

@@ -1,25 +1,25 @@
 from django.db import models
-from django.contrib.auth.models import User   # built-in user model
-
+from django.contrib.auth.models import User
+from django.utils.timezone import now
 
 # ========================
 # Room Model
 # ========================
 class Room(models.Model):
-    STATUS_CHOICES = [
+    ROOM_STATUS = [
         ("available", "Available"),
         ("booked", "Booked"),
         ("maintenance", "Maintenance"),
     ]
 
-    room_number = models.CharField(max_length=10)
-    room_type = models.CharField(max_length=20)
+    room_number = models.CharField(max_length=10, unique=True)
+    room_type = models.CharField(max_length=50)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     image = models.ImageField(upload_to="rooms/", blank=True, null=True)
 
     status = models.CharField(
         max_length=20,
-        choices=STATUS_CHOICES,
+        choices=ROOM_STATUS,
         default="available"
     )
 
@@ -37,20 +37,55 @@ BOOKING_SOURCES = [
     ("corporate", "Corporate"),
 ]
 
+BOOKING_STATUS = [
+    ("pending", "Pending"),
+    ("confirmed", "Confirmed"),
+    ("cancelled", "Cancelled"),
+    ("refunded", "Refunded"),
+]
+
+
 class Booking(models.Model):
-    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+    room = models.ForeignKey(
+        Room,
+        on_delete=models.CASCADE,
+        related_name="bookings"   # ✅ no clash
+    )
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    customer_name = models.CharField(max_length=100)
+
+    customer_name = models.CharField(max_length=120)
+    customer_email = models.EmailField(blank=True, null=True)
+
     check_in = models.DateField()
     check_out = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
 
-    # ✅ new field to track how booking was made
-    source = models.CharField(
-        max_length=20,
-        choices=BOOKING_SOURCES,
-        default="website"
-    )
+    # ✅ Booking metadata
+    status = models.CharField(max_length=20, choices=BOOKING_STATUS, default="pending")
+    source = models.CharField(max_length=20, choices=BOOKING_SOURCES, default="website")
+
+    # ✅ Invoice number (auto-generated)
+    invoice_number = models.CharField(max_length=20, unique=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        # auto-generate invoice number if not set
+        if not self.invoice_number:
+            year = now().year
+            count = Booking.objects.filter(created_at__year=year).count() + 1
+            self.invoice_number = f"INV-{year}-{count:03d}"
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Booking by {self.customer_name} for {self.room}"
+        return f"{self.invoice_number} - {self.customer_name} ({self.status})"
+
+
+
+class Payment(models.Model):
+    booking = models.OneToOneField("Booking", on_delete=models.CASCADE, related_name="payment")
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_id = models.CharField(max_length=200, blank=True, null=True)
+    status = models.CharField(max_length=20, default="pending")  # pending, success, failed
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Payment {self.transaction_id or 'N/A'} - {self.status}"
