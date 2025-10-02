@@ -251,12 +251,10 @@
     </div>
 
     <!-- Weekly Bookings -->
-    <div class="glass-card p-2 mb-3 text-white fw-bold"> 📈 Weekly Bookings </div>
+    <div class="glass-card p-2 mb-3 text-white fw-bold">📈 Weekly Bookings</div>
     <div class="glass-card p-3 mb-5">
-      {% if chart_svg %}
-        <div class="chart-svg-wrap">{% autoescape off %}{{ chart_svg }}{% endautoescape %}</div>
-      {% elif chart %}
-        <img src="data:image/png;base64,{{ chart }}" class="img-fluid rounded" style="background: transparent;" />
+      {% if chart_html %}
+        {{ chart_html|safe }}
       {% else %}
         <div class="text-muted">No weekly bookings data.</div>
       {% endif %}
@@ -321,6 +319,12 @@
             <th>Created At</th>
           </tr>
         </thead>
+      <td>
+      <a href="{% url 'booking_invoice' booking.id %}" class="btn btn-sm btn-danger">
+        <i class="fa fa-file-pdf"></i> Invoice
+      </a>
+    </td>
+
         <tbody>
           {% for booking in recent_bookings %}
             <tr>

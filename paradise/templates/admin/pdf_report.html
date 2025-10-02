@@ -5,7 +5,18 @@
   <title>Paradise Hotel — Bookings Report</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    body { font-family: Arial, Helvetica, sans-serif; color: #222; margin: 18px; font-size: 13px; }
+    /* Basic layout + improved PDF rules */
+    @page { size: A4; margin: 18mm 12mm; }
+    /* Embed a common sans fallback; if you have a TTF you want to embed, add @font-face here */
+    /* Example (uncomment and provide path accessible to WeasyPrint):
+    @font-face {
+      font-family: "InterVar";
+      src: url("file:///usr/share/fonts/truetype/your-font.ttf") format("truetype");
+      font-weight: normal;
+      font-style: normal;
+    }
+    */
+    body { font-family: Arial, Helvetica, sans-serif; color: #222; margin: 0; padding: 18px; font-size: 13px; }
     header { text-align: center; margin-bottom: 6px; }
     h1 { margin: 0; font-size: 20px; color: #0d6efd; }
     h2 { margin: 4px 0 12px 0; font-size: 15px; color: #333; }
@@ -29,13 +40,15 @@
     table.bookings th { background: #0d6efd; color: #fff; font-weight: 600; font-size: 12px; }
     table.bookings tbody tr:nth-child(even) td { background: #fafafa; }
 
+    /* Page break helpers for WeasyPrint */
     .page-break { page-break-after: always; }
     thead { display: table-header-group; }
     tfoot { display: table-row-group; }
 
-    .footer { margin-top: 18px; color: #666; font-size: 11px; text-align: center; }
-    .revenue-list { margin: 6px 0 0 16px; font-size: 12px; }
+    /* Keep charts from being split awkwardly */
     .chart-block { page-break-inside: avoid; }
+
+    .footer { margin-top: 18px; color: #666; font-size: 11px; text-align: center; }
   </style>
 </head>
 <body>

@@ -1,10 +1,43 @@
 # booking/views.py
+import weasyprint
+
+
+
+
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
-from django.shortcuts import render, redirect
+from django.core.checks import messages
+from django.http import HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.template.loader import render_to_string
+
 from .models import Room, Booking
 from .models import Booking
+from booking.utils import send_booking_confirmation
 
+
+class BookingForm:
+    pass
+
+
+def book_room(request):
+    if request.method == "POST":
+        form = BookingForm(request.POST)
+        if form.is_valid():
+            booking = form.save()
+            send_booking_confirmation(booking)
+            messages.success(request, "Booking successful! Confirmation sent to your email.")
+            return redirect("booking_success", pk=booking.pk)
+
+
+#
+def booking_invoice(request, pk):
+    booking = get_object_or_404(Booking, pk=pk)
+    html = render_to_string("booking/invoice.html", {"booking": booking})
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f"attachment; filename=invoice_{booking.id}.pdf"
+    weasyprint.HTML(string=html).write_pdf(response)
+    return response
 
 
 

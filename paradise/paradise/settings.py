@@ -13,7 +13,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-=a1lapk3u+m&6l65pzi7k4od(rzg+tq4-5%#&uf4_yd6)hx+mg'
 
 DEBUG = True  # ⚠️ Turn OFF in production (set False)
-ALLOWED_HOSTS = []  # e.g. ["yourdomain.com", "127.0.0.1"]
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "testserver",   # required for Django Test Client / manage.py shell Client()
+]
 
 
 # --------------------------------------------------

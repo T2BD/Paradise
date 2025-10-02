@@ -12,9 +12,9 @@ class Room(models.Model):
         ("maintenance", "Maintenance"),
     ]
 
-    room_number = models.CharField(max_length=10, unique=True)
-    room_type = models.CharField(max_length=50)
-    price = models.DecimalField(max_digits=8, decimal_places=2)
+    room_number = models.CharField(max_length=10)
+    room_type = models.CharField(max_length=20)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
     image = models.ImageField(upload_to="rooms/", blank=True, null=True)
 
     status = models.CharField(
