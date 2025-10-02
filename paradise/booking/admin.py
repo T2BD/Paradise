@@ -402,30 +402,30 @@ class CustomAdminSite(admin.AdminSite):
 
         # ✅ PDF export
         if request.GET.get("export") == "pdf":
-            html_string = render_to_string(
-                "admin/pdf_report.html",
-                {
-                    "bookings": bookings_qs,
-                    "total_rooms": total_rooms,
-                    "total_bookings": total_bookings,
-                    "today_checkins": today_checkins,
-                    "today_checkouts": today_checkouts,
-                    "revenue_per_type": revenue_per_type,
-                    "avg_stay_days": avg_stay_days,
-                    "occupancy_rate": occupancy_rate,
-                    "chart": chart_base64,
-                    "room_chart": room_chart_base64,
-                    "occupancy_chart": occupancy_chart_base64,
-                    "revenue_chart": revenue_chart_base64,
-                    "source_chart": source_chart_base64,
-                    "filter_start": start_date,
-                    "filter_end": end_date,
-                    "filter_room_type": room_type,
-                },
-            )
+            pdf_context = {
+                "bookings": bookings_qs,
+                "total_rooms": total_rooms,
+                "total_bookings": total_bookings,
+                "today_checkins": today_checkins,
+                "today_checkouts": today_checkouts,
+                "revenue_per_type": revenue_per_type,
+                "avg_stay_days": avg_stay_days,
+                "occupancy_rate": occupancy_rate,
+                "chart": chart_base64,
+                "room_chart": room_chart_base64,
+                "occupancy_chart": occupancy_chart_base64,
+                "revenue_chart": revenue_chart_base64,
+                "source_chart": source_chart_base64,
+                "chart_svg": chart_svg,
+                "room_chart_svg": room_chart_svg,
+                "filter_start": start_date,
+                "filter_end": end_date,
+            }
+            html_string = render_to_string("admin/pdf_report.html", pdf_context)
+            filename = f"bookings_report_{start_date.isoformat()}_to_{end_date.isoformat()}.pdf"
             pdf_file = HTML(string=html_string).write_pdf()
             response = HttpResponse(pdf_file, content_type="application/pdf")
-            response["Content-Disposition"] = "attachment; filename=bookings_report.pdf"
+            response["Content-Disposition"] = f'attachment; filename="{filename}"'
             return response
 
         # --- Top rooms: return Room instances (in order) with total_bookings attached ---

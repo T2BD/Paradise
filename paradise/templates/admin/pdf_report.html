@@ -111,18 +111,23 @@
       <tr>
         <td>
           <div class="chart-title">Weekly bookings</div>
-          {% if chart %}
-            <img class="chart" src="data:image/png;base64,{{ chart }}" alt="Weekly bookings chart">
+          {% if chart_svg %}
+            {% autoescape off %}{{ chart_svg }}{% endautoescape %}
+          {% elif chart %}
+            <img class="chart" src="data:image/png;base64,{{ chart }}" alt="Weekly bookings" />
           {% else %}
-            <div>No weekly bookings chart available.</div>
+            <div class="text-muted">No weekly bookings chart available.</div>
           {% endif %}
         </td>
+
         <td>
           <div class="chart-title">Bookings per room type</div>
-          {% if room_chart %}
-            <img class="chart" src="data:image/png;base64,{{ room_chart }}" alt="Bookings per room type">
+          {% if room_chart_svg %}
+            {% autoescape off %}{{ room_chart_svg }}{% endautoescape %}
+          {% elif room_chart %}
+            <img class="chart" src="data:image/png;base64,{{ room_chart }}" alt="Bookings per room type" />
           {% else %}
-            <div>No room type chart available.</div>
+            <div class="text-muted">No room type chart available.</div>
           {% endif %}
         </td>
       </tr>
@@ -130,18 +135,23 @@
       <tr>
         <td>
           <div class="chart-title">Occupancy (period)</div>
-          {% if occupancy_chart %}
-            <img class="chart" src="data:image/png;base64,{{ occupancy_chart }}" alt="Occupancy chart">
+          {% if occupancy_chart_svg %}
+            {% autoescape off %}{{ occupancy_chart_svg }}{% endautoescape %}
+          {% elif occupancy_chart %}
+            <img class="chart" src="data:image/png;base64,{{ occupancy_chart }}" alt="Occupancy chart" />
           {% else %}
-            <div>No occupancy chart available.</div>
+            <div class="text-muted">No occupancy chart available.</div>
           {% endif %}
         </td>
+
         <td>
           <div class="chart-title">Revenue trend (daily)</div>
-          {% if revenue_chart %}
-            <img class="chart" src="data:image/png;base64,{{ revenue_chart }}" alt="Revenue trend chart">
+          {% if revenue_chart_svg %}
+            {% autoescape off %}{{ revenue_chart_svg }}{% endautoescape %}
+          {% elif revenue_chart %}
+            <img class="chart" src="data:image/png;base64,{{ revenue_chart }}" alt="Revenue trend chart" />
           {% else %}
-            <div>No revenue trend chart available.</div>
+            <div class="text-muted">No revenue trend chart available.</div>
           {% endif %}
         </td>
       </tr>
@@ -149,10 +159,12 @@
       <tr>
         <td colspan="2">
           <div class="chart-title">Bookings by source</div>
-          {% if source_chart %}
-            <img class="chart" src="data:image/png;base64,{{ source_chart }}" alt="Bookings by source">
+          {% if source_chart_svg %}
+            {% autoescape off %}{{ source_chart_svg }}{% endautoescape %}
+          {% elif source_chart %}
+            <img class="chart" src="data:image/png;base64,{{ source_chart }}" alt="Bookings by source" />
           {% else %}
-            <div>No bookings-by-source chart available.</div>
+            <div class="text-muted">No bookings-by-source chart available.</div>
           {% endif %}
         </td>
       </tr>
