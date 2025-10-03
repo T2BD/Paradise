@@ -1,6 +1,31 @@
+import tempfile
+
+import weasyprint
+from django.core.mail import EmailMessage
 from django.db import models
 from django.contrib.auth.models import User
+from django.template.loader import render_to_string
 from django.utils.timezone import now
+
+
+
+
+def send_invoice_email(booking):
+    html = render_to_string("booking/invoice.html", {"booking": booking})
+    pdf_file = tempfile.NamedTemporaryFile(delete=True, suffix=".pdf")
+    weasyprint.HTML(string=html).write_pdf(pdf_file.name)
+
+    email = EmailMessage(
+        subject=f"Paradise Hotel - Invoice {booking.invoice_number}",
+        body="Please find your updated invoice attached.",
+        from_email="no-reply@paradisehotel.com",
+        to=[booking.customer_email],
+    )
+    email.attach_file(pdf_file.name)
+    email.send()
+
+
+
 
 # ========================
 # Room Model
@@ -47,9 +72,9 @@ BOOKING_STATUS = [
 
 class Booking(models.Model):
     room = models.ForeignKey(
-        Room,
+        "Room",
         on_delete=models.CASCADE,
-        related_name="bookings"   # ✅ no clash
+        related_name="bookings"   # ✅ no clash with "room"
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 
@@ -64,8 +89,26 @@ class Booking(models.Model):
     status = models.CharField(max_length=20, choices=BOOKING_STATUS, default="pending")
     source = models.CharField(max_length=20, choices=BOOKING_SOURCES, default="website")
 
+    # Refund fields
+    refund_requested = models.BooleanField(default=False)
+    refund_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    refund_date = models.DateTimeField(null=True, blank=True)
+
     # ✅ Invoice number (auto-generated)
     invoice_number = models.CharField(max_length=20, unique=True, blank=True)
+
+    # ✅ Payment tracking
+    payment_status = models.CharField(
+        max_length=20,
+        choices=[
+            ("unpaid", "Unpaid"),
+            ("paid", "Paid"),
+            ("refunded", "Refunded"),
+        ],
+        default="unpaid"
+    )
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    payment_date = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         # auto-generate invoice number if not set
@@ -76,8 +119,7 @@ class Booking(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.invoice_number} - {self.customer_name} ({self.status})"
-
+        return f"{self.invoice_number} - {self.customer_name} ({self.status}, {self.payment_status})"
 
 
 class Payment(models.Model):
@@ -89,3 +131,7 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Payment {self.transaction_id or 'N/A'} - {self.status}"
+
+
+
+

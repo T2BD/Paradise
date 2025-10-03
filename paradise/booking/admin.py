@@ -284,6 +284,9 @@ class CustomAdminSite(admin.AdminSite):
         total_bookings = bookings_qs.count()
         today_checkins = bookings_qs.filter(check_in=today).count()
         today_checkouts = bookings_qs.filter(check_out=today).count()
+        paid_bookings = Booking.objects.filter(payment_status="paid")
+        unpaid_bookings = Booking.objects.filter(payment_status="unpaid")
+        refunded_bookings = Booking.objects.filter(payment_status="refunded")
 
         # --- Weekly bookings data ---
         last_week = [end_date - datetime.timedelta(days=i) for i in range(6, -1, -1)]
@@ -557,17 +560,22 @@ class RoomAdmin(admin.ModelAdmin):
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
     list_display = (
-        "invoice_number",  # ✅ show invoice number
+        "invoice_number",
         "customer_name",
         "room",
         "check_in",
         "check_out",
-        "created_at",
         "status",
+        "payment_status",   # ✅ new field
+        "amount_paid",
+        "payment_date",
+        "source",
         "user",
-        "source"
+        "created_at",
     )
-    list_filter = ("status", "check_in", "check_out", "room__room_type", "source")
+    list_filter = ("status", "payment_status", "check_in", "check_out", "room__room_type", "source",   "invoice_number", "customer_name", "status", "payment_status",
+    "amount_paid", "payment_date", "refund_requested", "refund_amount", "refund_date")
+    list_filter = ("status", "payment_status", "refund_requested")
     search_fields = ("invoice_number", "customer_name", "room__room_number", "user__username", "user__email")
     ordering = ("-created_at",)
 

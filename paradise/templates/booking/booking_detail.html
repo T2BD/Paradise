@@ -1,7 +1,20 @@
+{% load static %}
 {% if booking.status == "pending" %}
   <a href="{% url 'paypal_start' booking.id %}" class="btn btn-success">
     💳 Pay with PayPal
   </a>
 {% elif booking.payment %}
   <p>Payment Status: <strong>{{ booking.payment.status }}</strong></p>
+{% endif %}
+
+<!-- Refund Button (only show if paid) -->
+{% if booking.payment_status == "paid" %}
+  <form action="{% url 'process_refund' booking.id %}" method="post" style="margin-top: 12px;">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger btn-sm">
+      Request Refund
+    </button>
+  </form>
+{% elif booking.payment_status == "refunded" %}
+  <p class="text-success mt-2"><strong>Refunded:</strong> {{ booking.refund_amount }} on {{ booking.refund_date }}</p>
 {% endif %}

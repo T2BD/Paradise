@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-
+{% load static %}
 {% block extrastyle %}
   {{ block.super }}
   <!-- Bootstrap & Icons -->
@@ -342,6 +342,7 @@
         </thead>
       <td>
       <a href="{% url 'booking_invoice' booking.id %}" class="btn btn-sm btn-danger">
+          <a href="{% url 'download_invoice' booking.id %}" class="btn btn-sm btn-primary"> Download Invoice (PDF) </a>
         <i class="fa fa-file-pdf"></i> Invoice
       </a>
     </td>

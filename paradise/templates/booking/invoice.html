@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -7,17 +8,26 @@
     body { font-family: Arial, sans-serif; font-size: 14px; }
     h1 { color: #0d6efd; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    td, th { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th, td { border: 1px solid #ccc; padding: 8px; }
+    th { background: #f8f9fa; }
   </style>
 </head>
 <body>
-  <h1>🏨 Paradise Hotel</h1>
-  <p><strong>Invoice #:</strong> {{ booking.invoice_number }}</p>
-  <p><strong>Customer:</strong> {{ booking.customer_name }}</p>
-  <p><strong>Email:</strong> {{ booking.customer_email }}</p>
-  <p><strong>Check-in:</strong> {{ booking.check_in }}</p>
-  <p><strong>Check-out:</strong> {{ booking.check_out }}</p>
-  <p><strong>Room:</strong> {{ booking.room.room_number }} ({{ booking.room.room_type }})</p>
-  <p><strong>Total Price:</strong> ${{ booking.room.price }}</p>
+  <h1>Paradise Hotel Invoice</h1>
+  <p><b>Invoice #:</b> {{ booking.invoice_number }}</p>
+  <p><b>Customer:</b> {{ booking.customer_name }} ({{ booking.customer_email }})</p>
+  <p><b>Status:</b> {{ booking.status }} | <b>Payment:</b> {{ booking.payment_status }}</p>
+  <p><b>Amount Paid:</b> {{ booking.amount_paid }}</p>
+  <p><b>Payment Date:</b> {{ booking.payment_date }}</p>
+
+  <table>
+    <tr><th>Room</th><th>Check-in</th><th>Check-out</th><th>Price</th></tr>
+    <tr>
+      <td>{{ booking.room.room_number }} ({{ booking.room.room_type }})</td>
+      <td>{{ booking.check_in }}</td>
+      <td>{{ booking.check_out }}</td>
+      <td>{{ booking.room.price }}</td>
+    </tr>
+  </table>
 </body>
 </html>
