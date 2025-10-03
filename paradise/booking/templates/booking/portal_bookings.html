@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 1100px;">
+  <h2 class="mb-3">My Bookings</h2>
+
+  {% if bookings %}
+  <div class="table-responsive">
+    <table class="table table-sm table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Invoice #</th>
+          <th>Room</th>
+          <th>Dates</th>
+          <th>Status</th>
+          <th>Payment</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for b in bookings %}
+        <tr>
+          <td>{{ b.invoice_number }}</td>
+          <td>Room {{ b.room.room_number }} ({{ b.room.room_type }})</td>
+          <td>{{ b.check_in }} → {{ b.check_out }}</td>
+          <td>{{ b.status|title }}</td>
+          <td>
+            {{ b.payment_status|title }}
+            {% if b.payment_status == "paid" and b.amount_paid %}
+              <div class="small text-muted">Paid: ${{ b.amount_paid }} on {{ b.payment_date }}</div>
+            {% endif %}
+          </td>
+          <td>
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'download_invoice' b.id %}">Invoice PDF</a>
+            {% if b.payment_status == "unpaid" %}
+              <a class="btn btn-sm btn-success" href="{% url 'paypal_start' b.id %}">Pay with PayPal</a>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="alert alert-info">No bookings found.</div>
+  {% endif %}
+</div>
+{% endblock %}

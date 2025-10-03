@@ -98,9 +98,21 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # --------------------------------------------------
 LANGUAGE_CODE = "en-us"
+
+LANGUAGES = [
+    ("en", "English"),
+    ("bn", "Bengali"),
+]
+
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
+
+LOCALE_PATHS = [
+    BASE_DIR / "locale",
+]
+
+
 
 
 # --------------------------------------------------

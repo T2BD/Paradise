@@ -7,19 +7,21 @@
 {% block content %}
 <div class="container py-5">
   <!-- ⭐⭐⭐ Start: Booking Form Section -->
+{% load i18n %}
   <div class="row justify-content-center">
     <div class="col-md-8 col-lg-6">
       <div class="card shadow-sm">
         <div class="card-header bg-primary text-white text-center">
-          <h4 class="mb-0">Book a Room</h4>
+          <h4 class="mb-0">{% trans "Book a Room"%}</h4>
         </div>
         <div class="card-body">
           <form method="post">
             {% csrf_token %}
 
             <!-- Room Selection -->
+          {% load i18n %}
             <div class="mb-3">
-              <label for="room_id" class="form-label">Select Room</label>
+              <label for="room_id" class="form-label">{% trans "Select Room"%}</label>
               <select class="form-select" id="room_id" name="room_id" required>
                 <option value="">Choose...</option>
                 {% for room in rooms %}
@@ -31,26 +33,30 @@
             </div>
 
             <!-- Customer Name -->
+          {% load i18n %}
             <div class="mb-3">
-              <label for="customer_name" class="form-label">Your Name</label>
+              <label for="customer_name" class="form-label">{% trans "Your Name"%}</label>
               <input type="text" class="form-control" id="customer_name" name="customer_name" placeholder="Enter your full name" required>
             </div>
 
             <!-- Check-in Date -->
+          {% load i18n %}
             <div class="mb-3">
-              <label for="check_in" class="form-label">Check-in Date</label>
+              <label for="check_in" class="form-label">{% trans "Check-in Date" %}</label>
               <input type="date" class="form-control" id="check_in" name="check_in" required>
             </div>
 
             <!-- Check-out Date -->
+          {% load i18n %}
             <div class="mb-3">
-              <label for="check_out" class="form-label">Check-out Date</label>
+              <label for="check_out" class="form-label">{% trans "Check-out Date" %}</label>
               <input type="date" class="form-control" id="check_out" name="check_out" required>
             </div>
 
             <!-- Submit Button -->
+          {% load i18n %}
             <div class="d-grid">
-              <button type="submit" class="btn btn-success">Confirm Booking</button>
+              <button type="submit" class="btn btn-success">{% trans "Confirm Booking" %}</button>
             </div>
           </form>
         </div>

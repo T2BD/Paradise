@@ -1,5 +1,8 @@
 # booking/views.py
 import tempfile
+import csv
+from datetime import timedelta
+
 from decimal import Decimal
 
 import weasyprint
@@ -7,16 +10,20 @@ import paypalrestsdk
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.core.mail import EmailMessage
+from django.db.models import Count, Sum
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
+from django.utils.dateparse import parse_date
 from django.utils.timezone import now
 
 from .models import Room, Booking, Payment  # assumes Payment model exists with booking FK
 from booking.utils import send_booking_confirmation
+from django.contrib.auth.decorators import login_required
 
 
 # ---------------------------------------------------------------------
@@ -326,3 +333,128 @@ def process_refund(request, booking_id):
 
     # safer redirect that exists in your app
     return redirect("my_bookings")
+
+
+# ===========
+# HELPERS
+# ===========
+def _parse_period(request):
+    """Return (start_date, end_date) based on ?start=YYYY-MM-DD&end=YYYY-MM-DD, default last 30 days."""
+    today = now().date()
+    start_q = request.GET.get("start")
+    end_q   = request.GET.get("end")
+    if start_q:
+        start = parse_date(start_q)
+    else:
+        start = today - timedelta(days=30)
+    if end_q:
+        end = parse_date(end_q)
+    else:
+        end = today
+    if start and end and start > end:
+        start, end = end, start
+    return (start or today - timedelta(days=30), end or today)
+
+# =======================================
+# Step 14 — CUSTOMER PORTAL: My Bookings
+# =======================================
+@login_required
+def portal_bookings(request):
+    """
+    Signed-in user sees their bookings, payment status, invoice download,
+    and a PayPal 'Complete payment' action if unpaid.
+    """
+    bookings = Booking.objects.filter(user=request.user).order_by("-created_at")
+    return render(request, "booking/portal_bookings.html", {"bookings": bookings})
+
+# =================================================
+# Step 14 — STAFF FINANCE DASHBOARD (no JavaScript)
+# =================================================
+@staff_member_required
+def staff_finance(request):
+    """
+    Staff summary of revenue & payment breakdown with filters.
+    """
+    start_date, end_date = _parse_period(request)
+    status = request.GET.get("payment_status")  # unpaid|paid|refunded|all/None
+
+    qs = Booking.objects.filter(created_at__date__gte=start_date,
+                                created_at__date__lte=end_date)
+
+    if status in {"unpaid", "paid", "refunded"}:
+        qs = qs.filter(payment_status=status)
+
+    # Totals
+    total_paid = qs.filter(payment_status="paid").aggregate(s=Sum("amount_paid"))["s"] or 0
+    total_unpaid_count = qs.filter(payment_status="unpaid").count()
+    total_paid_count = qs.filter(payment_status="paid").count()
+    total_refunded_count = qs.filter(payment_status="refunded").count()
+
+    # Revenue by day (simple list for the template)
+    daily = (
+        qs.filter(payment_status="paid")
+          .values("payment_date")
+          .annotate(amount=Sum("amount_paid"), count=Count("id"))
+          .order_by("payment_date")
+    )
+
+    context = {
+        "start": start_date,
+        "end": end_date,
+        "filter_payment_status": status or "",
+        "total_paid": total_paid,
+        "total_unpaid_count": total_unpaid_count,
+        "total_paid_count": total_paid_count,
+        "total_refunded_count": total_refunded_count,
+        "daily": daily,
+        "rows": qs.select_related("room").order_by("-created_at")[:200],  # cap for page
+    }
+    return render(request, "booking/staff_finance.html", context)
+
+@staff_member_required
+def finance_csv(request):
+    """
+    Export filtered finance data as CSV (same filters as staff_finance).
+    """
+    start_date, end_date = _parse_period(request)
+    status = request.GET.get("payment_status")
+
+    qs = Booking.objects.filter(created_at__date__gte=start_date,
+                                created_at__date__lte=end_date)
+    if status in {"unpaid", "paid", "refunded"}:
+        qs = qs.filter(payment_status=status)
+
+    response = HttpResponse(content_type="text/csv")
+    filename = f"finance_{start_date}_{end_date}.csv"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        "Invoice #", "Customer", "Email", "Room", "Room Type",
+        "Status", "Payment Status", "Amount Paid", "Payment Date",
+        "Source", "Check-in", "Check-out", "Created"
+    ])
+    for b in qs.select_related("room"):
+        writer.writerow([
+            b.invoice_number,
+            b.customer_name,
+            b.customer_email or "",
+            getattr(b.room, "room_number", ""),
+            getattr(b.room, "room_type", ""),
+            b.status,
+            b.payment_status,
+            b.amount_paid or 0,
+            b.payment_date or "",
+            b.source,
+            b.check_in,
+            b.check_out,
+            b.created_at.strftime("%Y-%m-%d %H:%M"),
+        ])
+    return response
+
+# ================
+# PayPal aliases
+# ================
+# If your earlier names differ, keep the ones you already wired in urls.
+paypal_success = payment_success  # if your existing function is named payment_success
+paypal_cancel = payment_cancel    # alias for consistency
